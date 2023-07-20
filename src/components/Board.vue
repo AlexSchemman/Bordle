@@ -55,8 +55,6 @@
 </template>
 
 <script>
-import axios from 'axios'
-
 export default {
   name: 'HelloWorld',
   props: {
@@ -73,8 +71,10 @@ export default {
   },
   methods: {
     addLetter (letter) {
-      this.clickedLetters.push(letter);
-      this.lastClicked = letter;
+      if(!this.clickedLetters.includes(letter)){
+        this.lastClicked = letter;
+        this.clickedLetters.push(letter);
+      }
     },
     undoAddLetter () {
       if(this.clickedLetters.length > 0){
@@ -97,10 +97,14 @@ export default {
       }
     },
     async getWordle() {
-      const response = await axios.post('https://rapidapi.com/learn/api/rest', {
-        guess: 'John',
-        });
-      console.log(response)
+      const response = await fetch("https://random-word-api.herokuapp.com/word?length=5")
+       if (response.ok) {
+            const data = await response.json();
+            console.log(data)
+            return data;
+        } else {
+            throw new Error("Something went wrong!")
+        }
     }
   },
   created() {
@@ -170,32 +174,32 @@ export default {
 }
 
 .floatMain {
-  box-shadow: 0 0px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0px 25px rgba(0, 0, 0, 0.3) !important;
   -webkit-transform: scale(1.1, 1.1);
   background-color: #05668d;
   transform: scale(1.1, 1.1);
-  -webkit-transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out ;
-  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+  -webkit-transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out, background-color 0.3s ease-in-out;
   border-radius: 0em;
 }
 
 .floatPrev {
-  box-shadow: 0 0px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0px 25px rgba(0, 0, 0, 0.3) !important;
   background-color: #05668d;
   -webkit-transform: scale(1.05, 1.05);
   transform: scale(1.05, 1.05);
-  -webkit-transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out ;
-  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+  -webkit-transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out, background-color 0.3s ease-in-out;
   border-radius: 0em;
 }
 
 .floatNext {
-  box-shadow: 0 0px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0px 25px rgba(0, 0, 0, 0.3) !important;
   background-color: #05668d;
   -webkit-transform: scale(1.05, 1.05);
   transform: scale(1.05, 1.05);
-  -webkit-transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out ;
-  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out;
+  -webkit-transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, border-radius 0.3s ease-in-out, background-color 0.3s ease-in-out;
   border-radius: 0em;
 }
 
