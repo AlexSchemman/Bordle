@@ -1,15 +1,15 @@
 <template>
   <v-app>
     <Header
-      @generated-rng-key="AssignGeneratedRngKey($event)"
-      @settings-config="SetSettings($event)"
-      ref="displayedKey"
+    @chosen-word="onChosenWord"
+    @reset="$refs.resetTrigger.resetGame()"
+    :clickedLetters = "clickedLetters"
     />
-    <Options/>
     <Board
-      :Chosen="wordChosen"
-      :settingsConfig="settingsConfig"
-      @selected="$refs.displayedKey.chooseRandom()"
+    v-if="this.chosenWord"
+    @clicked-letters="setLetters"
+    :chosenWord = "chosenWord"
+    ref="resetTrigger"
     />
   </v-app>
 </template>
@@ -25,19 +25,17 @@ export default {
     Board
   },
   methods: {
-    AssignGeneratedRngKey(key) {
-      this.wordChosen = key;
+    setLetters(letters) {
+      this.clickedLetters = letters.join("");
     },
-    SetSettings(settingsConfig) {
-      this.settingsConfig = settingsConfig
-      console.log(settingsConfig)
+    onChosenWord(word) {
+      this.chosenWord = word.join("");
     },
   },
   data () {
     return {
-      wordChosen: '',
-      settingsConfig: {},
-      renderComponent: true,
+      clickedLetters : '',
+      chosenWord : '',
     }
   }
 }
@@ -46,7 +44,7 @@ export default {
 <style lang="scss">
 
 :root {
-  --baseSize: 5em;
+  --baseSize: 4.5em;
 }
 
 #app {

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    {{ clickedLetters }}
+    Reference alphabet : {{ AlphabetString }}
     <div class="keychoice">
       <div class="row">
         <div 
@@ -10,10 +10,12 @@
           @mouseleave="HoverEl = HoverEl==letter? 'null' : letter"
           >
           <v-btn
-            :class="{ floatLastClicked: letter == lastClicked, floatClicked: clickedLetters.includes(letter), floatPrev: letter == prevL, floatNext: letter == nextL, floatMain: letter == HoverEl}"
+            :class="{floatLastClicked: letter == lastClicked, floatClicked: clickedLetters.includes(letter), floatPrev: letter == prevL, floatNext: letter == nextL, floatMain: letter == HoverEl}"
             @click="addLetter(letter)"
           >
-
+          <div v-if="renderLetter(letter)">
+            {{ letter }}
+          </div>
           </v-btn>
         </div>
       </div>
@@ -28,7 +30,10 @@
             :class="{floatLastClicked: letter == lastClicked, floatClicked: clickedLetters.includes(letter), floatPrev: letter == prevL, floatNext: letter == nextL, floatMain: letter == HoverEl}"
             @click="addLetter(letter)"
           >
-
+            <div 
+            v-if="renderLetter(letter)">
+            {{ letter }}
+          </div>
           </v-btn>
         </div>
       </div>
@@ -40,45 +45,55 @@
           @mouseleave="HoverEl = HoverEl==letter? 'null' : letter"
           >
           <v-btn
-            :class="{ floatLastClicked: letter == lastClicked, floatClicked: clickedLetters.includes(letter), floatPrev: letter == prevL, floatNext: letter == nextL, floatMain: letter == HoverEl}"
+            :class="{floatLastClicked: letter == lastClicked, floatClicked: clickedLetters.includes(letter), floatPrev: letter == prevL, floatNext: letter == nextL, floatMain: letter == HoverEl}"
             @click="addLetter(letter)"
           >
-
+            <div v-if="renderLetter(letter)">
+            {{ letter }}
+          </div>
           </v-btn>
         </div>
       </div>
     </div>
-    {{ prevL }}
+    <!-- {{ prevL }}
     {{ HoverEl }}
-    {{ nextL }}
+    {{ nextL }} -->
   </v-container>
 </template>
 
 <script>
 export default {
-  name: 'HelloWorld',
+  name: 'boardSection',
   props: {
-    Chosen: {
+    chosenWord: {
       type: String,
-      required: true,
+      required: false,
       default: '',
-    },
-    settingsConfig: {
-      type: Object,
-      required: true,
-      default: () => {},
-    },
+    }
   },
   methods: {
+    renderLetter(letter) {
+      return (
+        this.chosenWord.includes(String.fromCharCode(letter.charCodeAt(0)-1)) && 
+        this.clickedLetters.includes(String.fromCharCode(letter.charCodeAt(0)-1))
+      ) || (
+        this.clickedLetters.includes(String.fromCharCode(letter.charCodeAt(0)+1)) &&
+        this.chosenWord.includes(String.fromCharCode(letter.charCodeAt(0)+1))
+      ) || (
+        this.clickedLetters.includes(letter)
+      )
+    },
     addLetter (letter) {
       if(!this.clickedLetters.includes(letter)){
         this.lastClicked = letter;
         this.clickedLetters.push(letter);
+        this.$emit('clicked-letters', this.clickedLetters)
       }
     },
     undoAddLetter () {
       if(this.clickedLetters.length > 0){
         this.clickedLetters.pop();
+        this.$emit('clicked-letters', this.clickedLetters)
         this.lastClicked = this.clickedLetters.slice(-1);
       }
     },
@@ -95,26 +110,45 @@ export default {
       if (event.ctrlKey && event.code === 'KeyZ') {
         this.undoAddLetter();
       }
+      else if (event.keyCode > 64 && event.keyCode < 91) 
+      {
+        this.setPressedKey(event.code);
+      }
     },
-    async getWordle() {
-      const response = await fetch("https://random-word-api.herokuapp.com/word?length=5")
-       if (response.ok) {
-            const data = await response.json();
-            console.log(data)
-            return data;
-        } else {
-            throw new Error("Something went wrong!")
-        }
+    setPressedKey(key) {
+      key = key.replace("Key","")
+      var index = this.keeb.indexOf(key);
+
+      if(this.letters[index] == this.pressedKey) {
+        this.addLetter(this.letters[index]);
+        this.HoverEl = '';
+      }
+      else {
+        this.HoverEl = this.letters[index];
+        this.pressedKey = this.letters[index];
+      }
+    },
+    resetGame() {
+      this.clickedLetters = [];
+      this.pressedKey = '';
+      this.lastClicked = '';
+      this.HoverEl = '';
+      
+      this.shuffleRows();
+      this.clickedLetters.push(this.chosenWord[0])
+      this.$emit('clicked-letters', this.clickedLetters)
     }
   },
   created() {
-    this.getWordle();
     document.addEventListener('keyup', this.keyupHandler)
 
-    const IntList = Array.from(Array(26)).map((e, i) => i + 65);
-    this.letters = IntList.map((x) => String.fromCharCode(x));
-
+    let codeArr = Array.from(Array(26)).map((e, i) => i + 65);
+    let intList = codeArr.map((x) => String.fromCharCode(x));
+    this.letters = [...intList];
+    this.AlphabetString = intList.join(" ")
     this.shuffleRows();
+    this.clickedLetters.push(this.chosenWord[0])
+    this.$emit('clicked-letters', this.clickedLetters)
   },
   unmounted () {
     document.removeEventListener('keyup', this.keyupHandler)
@@ -124,12 +158,19 @@ export default {
       const code = newVal.charCodeAt(0);
       this.prevL = String.fromCharCode(code-1);
       this.nextL = String.fromCharCode(code+1);
-    }
+    },
   },
   data() {
     return {
       letters: [],
+      keeb: [
+        'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', 
+        'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L',
+        'Z', 'X', 'C', 'V', 'B', 'N', 'M'
+      ],
+      AlphabetString: '',
       clickedLetters: [],
+      pressedKey: '',
       lastClicked: '',
       HoverEl: '',
       nextL: '',
@@ -209,6 +250,7 @@ export default {
     rgba(0, 0, 0, 0.14)), 0px 1px 5px 0px var(--v-shadow-key-penumbra-opacity,
     rgba(0, 0, 0, 0.12));
   background-color: red !important;
+  color: yellow;
 }
 
 .floatLastClicked {
@@ -217,8 +259,12 @@ export default {
      rgba(0, 0, 0, 0.14)), 0px 1px 5px 0px var(--v-shadow-key-penumbra-opacity,
       rgba(0, 0, 0, 0.12));
   background-color: yellow !important;
+  color: red;
 }
 
+.floatCorrectClicked {
+  color: #EBF2FA;
+}
 .none {
   background-color: red;
 }
