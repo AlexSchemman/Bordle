@@ -45,7 +45,7 @@ export default {
   },
   methods: {
     async getWordle() {
-      let wordArr = TextFile.split("\n").filter(words => words.length === 5)
+      let wordArr = TextFile.split(/[\n\r]+/).filter(words => words.length === 5)
       this.word = wordArr[wordArr.length * Math.random() | 0].toUpperCase().split('');
       console.log(this.word)
       this.$emit('chosen-word', this.word)
